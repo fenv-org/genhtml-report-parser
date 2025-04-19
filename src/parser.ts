@@ -107,3 +107,19 @@ function parseCoverage(coverage: string): number {
   }
   return parseFloat(coverage);
 }
+
+function tableType(document: HTMLDocument): "Directory" | "File" | undefined {
+  const td = document.querySelector(
+    "body > center > table > tbody > tr:nth-child(2) > td:nth-child(1)",
+  );
+  if (!td) return;
+
+  const text = td.textContent.trim();
+  if (text === "Directory") {
+    return "Directory";
+  }
+  if (text === "File") {
+    return "File";
+  }
+  return;
+}
