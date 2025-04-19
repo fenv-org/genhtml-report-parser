@@ -61,7 +61,7 @@ export async function parseRootIndexFile(
   const rootDocument = new DOMParser()
     .parseFromString(fileContent, "text/html");
   const rootDirectory = resolve(dirname(filepath));
-  const rootStats = parseRootDocumentStats(rootDocument);
+  const rootStats = parseStats(rootDocument);
   if (!rootStats) return;
 
   const report: GenhtmlReport = {
@@ -78,9 +78,9 @@ export async function parseRootIndexFile(
 }
 
 /**
- * Read the stats from the root index file.
+ * Read the stats from the given `index.html` document.
  */
-export function parseRootDocumentStats(
+export function parseStats(
   document: HTMLDocument,
 ): GenhtmlReportStats | undefined {
   const summaryHeaders = [...document.querySelectorAll(
