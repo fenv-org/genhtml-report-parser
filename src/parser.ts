@@ -101,6 +101,29 @@ export function parseStats(
   return summary;
 }
 
+export function parseEntries(
+  document: HTMLDocument,
+) {
+  const tableTypeValue = tableType(document);
+  console.log("tableTypeValue", tableTypeValue);
+
+  const rows = tableRows(document);
+  for (const row of rows) {
+    // "directoryOrFile" is an <a> element
+    const directoryOrFile = tableTypeValue === "Directory"
+      ? row.querySelector("td.coverDirectory")
+      : row.querySelector("td.coverFile");
+    const path = directoryOrFile?.textContent.trim() || "";
+    console.log("directoryOrFile", path);
+  }
+}
+
+function parseStatKeys(
+  document: HTMLDocument,
+): GenhtmlReportStatsKeys[] {
+  return Object.keys(parseStats(document) || {}) as GenhtmlReportStatsKeys[];
+}
+
 function parseCoverage(coverage: string): number {
   if (coverage.endsWith(" %")) {
     return parseFloat(coverage.slice(0, -2));
@@ -122,4 +145,11 @@ function tableType(document: HTMLDocument): "Directory" | "File" | undefined {
     return "File";
   }
   return;
+}
+
+function tableRows(document: HTMLDocument): Element[] {
+  const rows = document.querySelectorAll(
+    "body > center > table > tbody > tr:nth-child(n+4)",
+  );
+  return [...rows];
 }
