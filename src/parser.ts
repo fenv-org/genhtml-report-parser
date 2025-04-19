@@ -1,4 +1,4 @@
-import { dirname, relative, resolve } from "@std/path";
+import { dirname, isAbsolute, relative, resolve } from "@std/path";
 import { DOMParser, Element, HTMLDocument, NodeType } from "@b-fuze/deno-dom";
 
 export type FilePath = {
@@ -11,6 +11,11 @@ export type GenhtmlReport = {
   root: {
     path: FilePath;
     stats: GenhtmlReportStats;
+    children: {
+      type: "Directory" | "File" | undefined;
+      path: FilePath;
+      stats: GenhtmlReportStats;
+    }[];
   };
 };
 
@@ -72,8 +77,22 @@ export async function parseRootIndexFile(
         relative: relative(rootDirectory, filepath),
       },
       stats: rootStats,
+      children: parseEntries(rootDocument).map((entry) => {
+        const relativePath = isAbsolute(entry.path)
+          ? relative(rootDirectory, entry.path)
+          : entry.path;
+        return {
+          type: entry.type,
+          path: {
+            absolute: resolve(entry.path),
+            relative: relativePath,
+          },
+          stats: entry.stats,
+        };
+      }),
     },
   };
+
   return report;
 }
 
@@ -103,19 +122,42 @@ export function parseStats(
 
 export function parseEntries(
   document: HTMLDocument,
-) {
+): {
+  path: string;
+  type: "Directory" | "File" | undefined;
+  stats: GenhtmlReportStats;
+}[] {
   const tableTypeValue = tableType(document);
-  console.log("tableTypeValue", tableTypeValue);
-
+  const keys = parseStatKeys(document).filter((key) => key !== "Coverage");
   const rows = tableRows(document);
-  for (const row of rows) {
+  return rows.map((row) => {
     // "directoryOrFile" is an <a> element
     const directoryOrFile = tableTypeValue === "Directory"
       ? row.querySelector("td.coverDirectory")
       : row.querySelector("td.coverFile");
     const path = directoryOrFile?.textContent.trim() || "";
-    console.log("directoryOrFile", path);
-  }
+    const coverage = parseCoverage(
+      (row.querySelector("td.coverPerHi") ??
+        row.querySelector("td.coverPerMed") ??
+        row.querySelector("td.coverPerLo")!)
+        .textContent.trim(),
+    );
+    const numbers = row.querySelectorAll("td:nth-child(n+4)");
+    const stats: GenhtmlReportStats = {
+      Coverage: coverage,
+      Total: 0,
+      Hit: 0,
+    };
+    keys.forEach((key, index) => {
+      const value = numbers[index].textContent.trim() || "0";
+      stats[key] = parseCoverage(value);
+    });
+    return {
+      path,
+      type: tableTypeValue,
+      stats,
+    };
+  });
 }
 
 function parseStatKeys(
