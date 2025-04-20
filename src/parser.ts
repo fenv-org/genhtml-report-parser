@@ -8,15 +8,28 @@ export type FilePath = {
 
 export type GenhtmlReport = {
   directory: string;
-  root: {
-    path: FilePath;
-    stats: GenhtmlReportStats;
-    children: {
-      type: "Directory" | "File" | undefined;
-      path: FilePath;
-      stats: GenhtmlReportStats;
-    }[];
-  };
+  root: GenhtmlReportRoot;
+};
+
+type GenhtmlReportRoot = {
+  path: FilePath;
+  stats: GenhtmlReportStats;
+  children: GenhtmlReportChild[];
+};
+
+type GenhtmlReportChild =
+  | GenhtmlReportFile
+  | GenhtmlReportDirectory;
+
+type GenhtmlReportFile = {
+  type: "File";
+  path: FilePath;
+  stats: GenhtmlReportStats;
+};
+
+type GenhtmlReportDirectory = {
+  type: "Directory";
+  children: GenhtmlReportFile[];
 };
 
 /**
@@ -62,14 +75,12 @@ type GenhtmlReportStatsKeys = keyof GenhtmlReportStats;
 export async function parseRootIndexFile(
   filepath: string,
 ): Promise<GenhtmlReport | undefined> {
-  const fileContent = await Deno.readTextFile(filepath);
-  const rootDocument = new DOMParser()
-    .parseFromString(fileContent, "text/html");
+  const rootDocument = await openDocument(filepath);
   const rootDirectory = resolve(dirname(filepath));
   const rootStats = parseStats(rootDocument);
   if (!rootStats) return;
 
-  const report: GenhtmlReport = {
+  return {
     directory: rootDirectory,
     root: {
       path: {
@@ -77,23 +88,9 @@ export async function parseRootIndexFile(
         relative: relative(rootDirectory, filepath),
       },
       stats: rootStats,
-      children: parseEntries(rootDocument).map((entry) => {
-        const relativePath = isAbsolute(entry.path)
-          ? relative(rootDirectory, entry.path)
-          : entry.path;
-        return {
-          type: entry.type,
-          path: {
-            absolute: resolve(entry.path),
-            relative: relativePath,
-          },
-          stats: entry.stats,
-        };
-      }),
+      children: parseChildren(rootDocument),
     },
   };
-
-  return report;
 }
 
 /**
@@ -120,7 +117,28 @@ export function parseStats(
   return summary;
 }
 
-export function parseEntries(
+function parseChildren(
+  document: HTMLDocument,
+): GenhtmlReportChild[] {
+  const children: GenhtmlReportChild[] = [];
+  const entries = parseEntries(document);
+  for (const entry of entries) {
+    switch (entry.type) {
+      case "Directory": {
+        break;
+      }
+      case "File": {
+        break;
+      }
+      default: {
+        continue;
+      }
+    }
+  }
+  return children;
+}
+
+function parseEntries(
   document: HTMLDocument,
 ): {
   path: string;
@@ -171,6 +189,11 @@ function parseCoverage(coverage: string): number {
     return parseFloat(coverage.slice(0, -2));
   }
   return parseFloat(coverage);
+}
+
+async function openDocument(filepath: string): Promise<HTMLDocument> {
+  const fileContent = await Deno.readTextFile(filepath);
+  return new DOMParser().parseFromString(fileContent, "text/html");
 }
 
 function tableType(document: HTMLDocument): "Directory" | "File" | undefined {
