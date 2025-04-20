@@ -13,7 +13,6 @@ export type GenhtmlReport = {
 };
 
 type GenhtmlReportRoot = {
-  path: FilePath;
   stats: GenhtmlReportStats;
   children: GenhtmlReportChild[];
 };
@@ -86,10 +85,6 @@ export async function parseRootIndexFile(
   return {
     directory: rootDirectory,
     root: {
-      path: {
-        absolute: filepath,
-        relative: relative(rootDirectory, filepath),
-      },
       stats: rootStats,
       children: await parseChildren(rootDirectory, rootDocument),
     },
