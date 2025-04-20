@@ -27,13 +27,17 @@ can run scripts directly.
 
 ```typescript
 import {
+  diff,
   findRootIndexFile,
   parseRootIndexFile,
 } from "jsr:@fenv-org/genhtml-report-parser";
 
-const rootIndexFile = await findRootIndexFile("/path/to/report/dir"); // or "/path/to/report.zip";
-const report = await parseRootIndexFile(rootIndexFile.absolutePath);
-console.log(report);
+const rootIndexFileA = await findRootIndexFile("/path/to/reportA"); // or "/path/to/reportA.zip"
+const rootIndexFileB = await findRootIndexFile("/path/to/reportB"); // or "/path/to/reportB.zip"
+const reportA = await parseRootIndexFile(rootIndexFileA.absolutePath);
+const reportB = await parseRootIndexFile(rootIndexFileB.absolutePath);
+const diffResult = diff(reportA!, reportB!);
+console.log(diffResult);
 ```
 
 ## API
@@ -42,6 +46,9 @@ console.log(report);
   or zip file.
 - `parseRootIndexFile(filepath: string)`: Parses the report and returns a
   structured object with coverage stats and file/directory tree.
+- `diff(before: GenhtmlReport, after: GenhtmlReport): DiffRoot`: Compares two
+  parsed reports and returns a diff object containing root stats and children
+  diffs.
 
 ## Types
 
@@ -49,6 +56,11 @@ console.log(report);
 - `GenhtmlReportStats`: Coverage statistics (see
   [arXiv:2008.07947](https://arxiv.org/pdf/2008.07947)).
 - `FilePath`: Absolute and relative file paths.
+- `DiffRoot`: The result of diff, containing optional root stats and an array of
+  DiffNode children.
+- `DiffNode`: Represents a diff for a file or directory node, including type,
+  nodeType, path, optional stats, and children.
+- `DiffStats`: Coverage/statistics delta for a node.
 
 ## Development
 

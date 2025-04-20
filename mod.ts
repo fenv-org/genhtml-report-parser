@@ -6,11 +6,14 @@
  * ## Usage
  *
  * ```ts
- * import { findRootIndexFile, parseRootIndexFile } from "jsr:@fenv-org/genhtml-report-parser";
+ * import { findRootIndexFile, parseRootIndexFile, diff } from "jsr:@fenv-org/genhtml-report-parser";
  *
- * const rootIndexFile = await findRootIndexFile("/path/to/report/dir/or.zip");
- * const report = await parseRootIndexFile(rootIndexFile.absolutePath);
- * console.log(report);
+ * const rootIndexFileA = await findRootIndexFile("/path/to/reportA");
+ * const rootIndexFileB = await findRootIndexFile("/path/to/reportB");
+ * const reportA = await parseRootIndexFile(rootIndexFileA.absolutePath);
+ * const reportB = await parseRootIndexFile(rootIndexFileB.absolutePath);
+ * const diffResult = diff(reportA!, reportB!);
+ * console.log(diffResult);
  * ```
  */
 
