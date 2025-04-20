@@ -197,11 +197,14 @@ function parseEntries(
   const tableTypeValue = tableType(document);
   const keys = parseStatKeys(document).filter((key) => key !== "Coverage");
   const rows = tableRows(document);
-  return rows.map((row) => {
+  return rows.flatMap((row) => {
     // "directoryOrFile" is an <a> element
     const directoryOrFile = tableTypeValue === "Directory"
       ? row.querySelector("td.coverDirectory")
       : row.querySelector("td.coverFile");
+    if (!directoryOrFile) {
+      return [];
+    }
     const path = directoryOrFile?.textContent.trim() || "";
     const coverage = parseCoverage(
       (row.querySelector("td.coverPerHi") ??
