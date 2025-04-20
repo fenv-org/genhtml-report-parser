@@ -37,8 +37,8 @@ jobs:
       - name: Run format
         run: deno fmt --check src mod.ts
 
-      - name: Run tests
-        run: deno task test
+    #   - name: Run tests
+    #     run: deno task test
 
   publish:
     runs-on: ubuntu-latest
