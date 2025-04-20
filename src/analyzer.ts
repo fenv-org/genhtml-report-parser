@@ -1,4 +1,104 @@
-import { GenhtmlReport } from "./parser.ts";
+import type {
+  GenhtmlReport,
+  GenhtmlReportChild,
+  GenhtmlReportStats,
+} from "./parser.ts";
 
-export function diff(a: GenhtmlReport, b: GenhtmlReport) {
+// Types for diff result
+export type DiffType = "added" | "removed" | "changed";
+
+export type DiffStats = {
+  coverageDelta?: number;
+  totalDelta?: number;
+  hitDelta?: number;
+};
+
+export type DiffNode = {
+  type: DiffType;
+  nodeType: "File" | "Directory";
+  path: string;
+  stats?: DiffStats;
+  children?: DiffNode[];
+};
+
+export function diff(before: GenhtmlReport, after: GenhtmlReport): DiffNode[] {
+  return diffChildren(before.root.children, after.root.children);
+}
+
+function statsDiff(
+  a: GenhtmlReportStats,
+  b: GenhtmlReportStats,
+): DiffStats | undefined {
+  const coverageDelta = b.Coverage - a.Coverage;
+  const totalDelta = b.Total - a.Total;
+  const hitDelta = b.Hit - a.Hit;
+  if (coverageDelta !== 0 || totalDelta !== 0 || hitDelta !== 0) {
+    return { coverageDelta, totalDelta, hitDelta };
+  }
+  return undefined;
+}
+
+function buildMap(
+  children: GenhtmlReportChild[],
+): Map<string, GenhtmlReportChild> {
+  const map = new Map<string, GenhtmlReportChild>();
+  for (const child of children) {
+    map.set(child.path.relative, child);
+  }
+  return map;
+}
+
+function diffChildren(
+  aChildren: GenhtmlReportChild[],
+  bChildren: GenhtmlReportChild[],
+): DiffNode[] {
+  const aMap = buildMap(aChildren);
+  const bMap = buildMap(bChildren);
+  const allKeys = new Set([...aMap.keys(), ...bMap.keys()]);
+  const diffs: DiffNode[] = [];
+  for (const key of allKeys) {
+    const aNode = aMap.get(key);
+    const bNode = bMap.get(key);
+    if (aNode && !bNode) {
+      // Removed
+      diffs.push({
+        type: "removed",
+        nodeType: aNode.type,
+        path: key,
+      });
+    } else if (!aNode && bNode) {
+      // Added
+      diffs.push({
+        type: "added",
+        nodeType: bNode.type,
+        path: key,
+      });
+    } else if (aNode && bNode) {
+      // Both exist, check for changes
+      if (aNode.type === "Directory" && bNode.type === "Directory") {
+        const stats = statsDiff(aNode.stats, bNode.stats);
+        const children = diffChildren(aNode.children, bNode.children);
+        if (stats || children.length > 0) {
+          diffs.push({
+            type: "changed",
+            nodeType: "Directory",
+            path: key,
+            stats,
+            children,
+          });
+        }
+      } else if (aNode.type === "File" && bNode.type === "File") {
+        const stats = statsDiff(aNode.stats, bNode.stats);
+        if (stats) {
+          diffs.push({
+            type: "changed",
+            nodeType: "File",
+            path: key,
+            stats,
+          });
+        }
+      }
+    }
+  }
+  return diffs;
 }
