@@ -3,9 +3,14 @@ import { extname, resolve } from "@std/path";
 import $ from "@david/dax";
 
 /**
- * Returns the absolute path to the root "index.html" file from the given path.
+ * Finds the absolute path to the root `index.html` file from the given path.
  *
- * @param path - The path to start searching from. It could be a "zip" file or a directory.
+ * If the path is a directory, it looks for `index.html` inside it.
+ * If the path is a zip file, it extracts and locates `index.html` in a temporary directory.
+ *
+ * @param path - The path to a directory or zip file containing a genhtml report.
+ * @returns An object with the absolute path to `index.html` and relative path info.
+ * @throws If the path does not exist, is not a directory or zip, or `index.html` is not found.
  */
 export async function findRootIndexFile(path: string): Promise<
   {

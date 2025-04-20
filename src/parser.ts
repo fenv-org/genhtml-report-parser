@@ -1,32 +1,60 @@
+/**
+ * @module genhtml-report-parser/parser
+ *
+ * Provides types and functions to parse genhtml (LCOV) HTML coverage reports into structured JSON objects.
+ *
+ * This module extracts coverage statistics and file/directory hierarchies from genhtml-generated `index.html` files or zipped report archives.
+ *
+ * @see https://arxiv.org/pdf/2008.07947 for coverage categories
+ */
+
 import { DOMParser, type Element, type HTMLDocument } from "@b-fuze/deno-dom";
 import { dirname, isAbsolute, relative, resolve } from "@std/path";
 import { findRootIndexFile } from "./file.ts";
 
+/**
+ * Represents an absolute and relative file path.
+ */
 export type FilePath = {
   absolute: string;
   relative: string;
 };
 
+/**
+ * The root object returned by parsing a genhtml report.
+ */
 export type GenhtmlReport = {
   directory: string;
   root: GenhtmlReportRoot;
 };
 
+/**
+ * The root node of a genhtml report, containing stats and children.
+ */
 export type GenhtmlReportRoot = {
   stats: GenhtmlReportStats;
   children: GenhtmlReportChild[];
 };
 
+/**
+ * A child node in the genhtml report tree, either a file or directory.
+ */
 export type GenhtmlReportChild =
   | GenhtmlReportFile
   | GenhtmlReportDirectory;
 
+/**
+ * Represents a file node in the genhtml report tree.
+ */
 export type GenhtmlReportFile = {
   type: "File";
   path: FilePath;
   stats: GenhtmlReportStats;
 };
 
+/**
+ * Represents a directory node in the genhtml report tree.
+ */
 export type GenhtmlReportDirectory = {
   type: "Directory";
   path: FilePath;
@@ -35,9 +63,9 @@ export type GenhtmlReportDirectory = {
 };
 
 /**
- * The different categories of the summary
+ * Coverage statistics for a file or directory, following genhtml conventions.
  *
- * @see https://arxiv.org/pdf/2008.07947
+ * @see https://arxiv.org/pdf/2008.07947 for details on each category
  */
 export type GenhtmlReportStats = {
   /** Coverage in percentage */
@@ -74,6 +102,12 @@ export type GenhtmlReportStats = {
 
 type GenhtmlReportStatsKeys = keyof GenhtmlReportStats;
 
+/**
+ * Parses a genhtml report root `index.html` file and returns a structured report object.
+ *
+ * @param filepath - The path to the root `index.html` file.
+ * @returns The parsed genhtml report, or undefined if parsing fails.
+ */
 export async function parseRootIndexFile(
   filepath: string,
 ): Promise<GenhtmlReport | undefined> {
