@@ -1,3 +1,8 @@
+[![JSR](https://jsr.io/badges/@fenv-org/genhtml-report-parser)](https://jsr.io/@fenv-org/genhtml-report-parser)
+[![JSR Score](https://jsr.io/badges/@fenv-org/genhtml-report-parser/score)](https://jsr.io/@fenv-org/genhtml-report-parser)
+[![Deno](https://img.shields.io/badge/deno-v2.2.10-brightgreen.svg)](https://deno.land/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 # genhtml-report-parser
 
 A Deno module for parsing `genhtml` (LCOV) HTML coverage reports into structured
