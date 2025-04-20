@@ -135,7 +135,13 @@ async function parseChildren(
             : resolve(rootDirectory, entry.path),
         );
         const childDocument = await openDocument(indexFilePath.absolutePath);
-        const childChildren = await parseChildren(rootDirectory, childDocument);
+        const relativePath = isAbsolute(entry.path)
+          ? relative(rootDirectory, entry.path)
+          : entry.path;
+        const childChildren = await parseChildren(
+          resolve(rootDirectory, relativePath),
+          childDocument,
+        );
         children.push({
           type: "Directory",
           path: {
@@ -151,6 +157,10 @@ async function parseChildren(
             if (child.type === "File") {
               return {
                 ...child,
+                path: {
+                  absolute: child.path.absolute,
+                  relative: relative(rootDirectory, child.path.absolute),
+                },
               };
             } else {
               return [];
