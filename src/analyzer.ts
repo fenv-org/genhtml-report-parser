@@ -69,10 +69,34 @@ function diffChildren(
       });
     } else if (!aNode && bNode) {
       // Added
+      let stats: DiffStats | undefined = undefined;
+      let children: DiffNode[] | undefined = undefined;
+      if (bNode.type === "Directory") {
+        stats = bNode.stats
+          ? {
+            coverageDelta: bNode.stats.Coverage,
+            totalDelta: bNode.stats.Total,
+            hitDelta: bNode.stats.Hit,
+          }
+          : undefined;
+        children = bNode.children
+          ? diffChildren([], bNode.children)
+          : undefined;
+      } else if (bNode.type === "File") {
+        stats = bNode.stats
+          ? {
+            coverageDelta: bNode.stats.Coverage,
+            totalDelta: bNode.stats.Total,
+            hitDelta: bNode.stats.Hit,
+          }
+          : undefined;
+      }
       diffs.push({
         type: "added",
         nodeType: bNode.type,
         path: key,
+        ...(stats ? { stats } : {}),
+        ...(children && children.length > 0 ? { children } : {}),
       });
     } else if (aNode && bNode) {
       // Both exist, check for changes
