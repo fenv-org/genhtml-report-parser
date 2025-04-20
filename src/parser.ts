@@ -12,22 +12,22 @@ export type GenhtmlReport = {
   root: GenhtmlReportRoot;
 };
 
-type GenhtmlReportRoot = {
+export type GenhtmlReportRoot = {
   stats: GenhtmlReportStats;
   children: GenhtmlReportChild[];
 };
 
-type GenhtmlReportChild =
+export type GenhtmlReportChild =
   | GenhtmlReportFile
   | GenhtmlReportDirectory;
 
-type GenhtmlReportFile = {
+export type GenhtmlReportFile = {
   type: "File";
   path: FilePath;
   stats: GenhtmlReportStats;
 };
 
-type GenhtmlReportDirectory = {
+export type GenhtmlReportDirectory = {
   type: "Directory";
   path: FilePath;
   stats: GenhtmlReportStats;
@@ -94,7 +94,7 @@ export async function parseRootIndexFile(
 /**
  * Read the stats from the given `index.html` document.
  */
-export function parseStats(
+function parseStats(
   document: HTMLDocument,
 ): GenhtmlReportStats | undefined {
   const summaryHeaders = [...document.querySelectorAll(
