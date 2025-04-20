@@ -42,13 +42,26 @@ export type DiffNode = {
 };
 
 /**
- * Compares two GenhtmlReport objects and returns an array of DiffNode objects representing the differences in coverage between the two reports.
+ * Represents the diff for the root node, including the diff of the root's stats and the diffs of its children.
+ * @property stats Optional difference in coverage statistics for the root node.
+ * @property children Array of DiffNode objects representing the differences in the root's children.
+ */
+export type DiffRoot = {
+  stats?: DiffStats;
+  children: DiffNode[];
+};
+
+/**
+ * Compares two GenhtmlReport objects and returns a DiffRoot object representing the differences in coverage between the two reports, including root stats and children diffs.
  * @param before The original GenhtmlReport.
  * @param after The updated GenhtmlReport.
- * @returns Array of DiffNode objects describing the differences.
+ * @returns DiffRoot object describing the root and children differences.
  */
-export function diff(before: GenhtmlReport, after: GenhtmlReport): DiffNode[] {
-  return diffChildren(before.root.children, after.root.children);
+export function diff(before: GenhtmlReport, after: GenhtmlReport): DiffRoot {
+  return {
+    stats: statsDiff(before.root.stats, after.root.stats),
+    children: diffChildren(before.root.children, after.root.children),
+  };
 }
 
 function statsDiff(
