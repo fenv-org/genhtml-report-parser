@@ -3,6 +3,7 @@ import type {
   GenhtmlReportChild,
   GenhtmlReportStats,
 } from "./parser.ts";
+import { Fraction } from "npm:fraction.js";
 
 // Types for diff result
 export type DiffType = "added" | "removed" | "changed";
@@ -29,7 +30,7 @@ function statsDiff(
   a: GenhtmlReportStats,
   b: GenhtmlReportStats,
 ): DiffStats | undefined {
-  const coverageDelta = b.Coverage - a.Coverage;
+  const coverageDelta = Number(new Fraction(b.Coverage).sub(a.Coverage));
   const totalDelta = b.Total - a.Total;
   const hitDelta = b.Hit - a.Hit;
   if (coverageDelta !== 0 || totalDelta !== 0 || hitDelta !== 0) {
