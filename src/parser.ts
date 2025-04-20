@@ -1,5 +1,5 @@
+import { DOMParser, type Element, type HTMLDocument } from "@b-fuze/deno-dom";
 import { dirname, isAbsolute, relative, resolve } from "@std/path";
-import { DOMParser, Element, HTMLDocument, NodeType } from "@b-fuze/deno-dom";
 import { findRootIndexFile } from "../mod.ts";
 
 export type FilePath = {
