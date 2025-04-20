@@ -3,7 +3,7 @@ import type {
   GenhtmlReportChild,
   GenhtmlReportStats,
 } from "./parser.ts";
-import { Fraction } from "npm:fraction.js";
+import { Fraction } from "fraction.js";
 
 /**
  * Type of difference between two nodes in the coverage report.
