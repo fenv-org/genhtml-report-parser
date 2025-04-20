@@ -1,5 +1,6 @@
 import { dirname, isAbsolute, relative, resolve } from "@std/path";
 import { DOMParser, Element, HTMLDocument, NodeType } from "@b-fuze/deno-dom";
+import { findRootIndexFile } from "../mod.ts";
 
 export type FilePath = {
   absolute: string;
@@ -29,6 +30,8 @@ type GenhtmlReportFile = {
 
 type GenhtmlReportDirectory = {
   type: "Directory";
+  path: FilePath;
+  stats: GenhtmlReportStats;
   children: GenhtmlReportFile[];
 };
 
@@ -88,7 +91,7 @@ export async function parseRootIndexFile(
         relative: relative(rootDirectory, filepath),
       },
       stats: rootStats,
-      children: parseChildren(rootDocument),
+      children: await parseChildren(rootDirectory, rootDocument),
     },
   };
 }
@@ -117,17 +120,58 @@ export function parseStats(
   return summary;
 }
 
-function parseChildren(
+async function parseChildren(
+  rootDirectory: string,
   document: HTMLDocument,
-): GenhtmlReportChild[] {
+): Promise<GenhtmlReportChild[]> {
   const children: GenhtmlReportChild[] = [];
   const entries = parseEntries(document);
   for (const entry of entries) {
     switch (entry.type) {
       case "Directory": {
+        const indexFilePath = await findRootIndexFile(
+          isAbsolute(entry.path)
+            ? entry.path
+            : resolve(rootDirectory, entry.path),
+        );
+        const childDocument = await openDocument(indexFilePath.absolutePath);
+        const childChildren = await parseChildren(rootDirectory, childDocument);
+        children.push({
+          type: "Directory",
+          path: {
+            absolute: isAbsolute(entry.path)
+              ? entry.path
+              : resolve(rootDirectory, entry.path),
+            relative: isAbsolute(entry.path)
+              ? relative(rootDirectory, entry.path)
+              : entry.path,
+          },
+          stats: entry.stats,
+          children: childChildren.flatMap((child) => {
+            if (child.type === "File") {
+              return {
+                ...child,
+              };
+            } else {
+              return [];
+            }
+          }),
+        });
         break;
       }
       case "File": {
+        children.push({
+          type: "File",
+          path: {
+            absolute: isAbsolute(entry.path)
+              ? entry.path
+              : resolve(rootDirectory, entry.path),
+            relative: isAbsolute(entry.path)
+              ? relative(rootDirectory, entry.path)
+              : entry.path,
+          },
+          stats: entry.stats,
+        });
         break;
       }
       default: {
