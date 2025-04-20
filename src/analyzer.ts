@@ -5,15 +5,34 @@ import type {
 } from "./parser.ts";
 import { Fraction } from "npm:fraction.js";
 
-// Types for diff result
+/**
+ * Type of difference between two nodes in the coverage report.
+ * - "added": Node exists only in the after report.
+ * - "removed": Node exists only in the before report.
+ * - "changed": Node exists in both but has changed stats or children.
+ */
 export type DiffType = "added" | "removed" | "changed";
 
+/**
+ * Describes the difference in coverage statistics between two nodes.
+ * @property coverageDelta Change in coverage percentage.
+ * @property totalDelta Change in total lines.
+ * @property hitDelta Change in hit lines.
+ */
 export type DiffStats = {
   coverageDelta?: number;
   totalDelta?: number;
   hitDelta?: number;
 };
 
+/**
+ * Represents a node in the diff tree, indicating the type of change, node type, path, optional stats, and any child diff nodes.
+ * @property type The type of difference (added, removed, changed).
+ * @property nodeType The type of node (File or Directory).
+ * @property path The relative path of the node.
+ * @property stats Optional difference in coverage statistics.
+ * @property children Optional child diff nodes.
+ */
 export type DiffNode = {
   type: DiffType;
   nodeType: "File" | "Directory";
@@ -22,6 +41,12 @@ export type DiffNode = {
   children?: DiffNode[];
 };
 
+/**
+ * Compares two GenhtmlReport objects and returns an array of DiffNode objects representing the differences in coverage between the two reports.
+ * @param before The original GenhtmlReport.
+ * @param after The updated GenhtmlReport.
+ * @returns Array of DiffNode objects describing the differences.
+ */
 export function diff(before: GenhtmlReport, after: GenhtmlReport): DiffNode[] {
   return diffChildren(before.root.children, after.root.children);
 }
