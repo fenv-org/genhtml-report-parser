@@ -15,14 +15,20 @@ export type DiffType = "added" | "removed" | "changed";
 
 /**
  * Describes the difference in coverage statistics between two nodes.
- * @property coverageDelta Change in coverage percentage.
- * @property totalDelta Change in total lines.
- * @property hitDelta Change in hit lines.
+ * @property Coverage The coverage percentage of the second node.
+ * @property Total The total lines of the second node.
+ * @property Hit The covered lines of the second node.
+ * @property CoverageDelta Change in coverage percentage.
+ * @property TotalDelta Change in total lines.
+ * @property HitDelta Change in hit lines.
  */
 export type DiffStats = {
-  coverageDelta?: number;
-  totalDelta?: number;
-  hitDelta?: number;
+  Coverage: number;
+  Total: number;
+  Hit: number;
+  CoverageDelta?: number;
+  TotalDelta?: number;
+  HitDelta?: number;
 };
 
 /**
@@ -68,11 +74,18 @@ function statsDiff(
   a: GenhtmlReportStats,
   b: GenhtmlReportStats,
 ): DiffStats | undefined {
-  const coverageDelta = Number(new Fraction(b.Coverage).sub(a.Coverage));
-  const totalDelta = b.Total - a.Total;
-  const hitDelta = b.Hit - a.Hit;
-  if (coverageDelta !== 0 || totalDelta !== 0 || hitDelta !== 0) {
-    return { coverageDelta, totalDelta, hitDelta };
+  const CoverageDelta = Number(new Fraction(b.Coverage).sub(a.Coverage));
+  const TotalDelta = b.Total - a.Total;
+  const HitDelta = b.Hit - a.Hit;
+  if (CoverageDelta !== 0 || TotalDelta !== 0 || HitDelta !== 0) {
+    return {
+      Coverage: b.Coverage,
+      Total: b.Total,
+      Hit: b.Hit,
+      CoverageDelta,
+      TotalDelta,
+      HitDelta,
+    };
   }
   return undefined;
 }
@@ -112,9 +125,12 @@ function diffChildren(
       if (bNode.type === "Directory") {
         stats = bNode.stats
           ? {
-            coverageDelta: bNode.stats.Coverage,
-            totalDelta: bNode.stats.Total,
-            hitDelta: bNode.stats.Hit,
+            Coverage: bNode.stats.Coverage,
+            Total: bNode.stats.Total,
+            Hit: bNode.stats.Hit,
+            CoverageDelta: bNode.stats.Coverage,
+            TotalDelta: bNode.stats.Total,
+            HitDelta: bNode.stats.Hit,
           }
           : undefined;
         children = bNode.children
@@ -123,9 +139,12 @@ function diffChildren(
       } else if (bNode.type === "File") {
         stats = bNode.stats
           ? {
-            coverageDelta: bNode.stats.Coverage,
-            totalDelta: bNode.stats.Total,
-            hitDelta: bNode.stats.Hit,
+            Coverage: bNode.stats.Coverage,
+            Total: bNode.stats.Total,
+            Hit: bNode.stats.Hit,
+            CoverageDelta: bNode.stats.Coverage,
+            TotalDelta: bNode.stats.Total,
+            HitDelta: bNode.stats.Hit,
           }
           : undefined;
       }
